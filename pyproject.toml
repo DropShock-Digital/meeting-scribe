@@ -19,7 +19,7 @@ dependencies = [
 
 [project.optional-dependencies]
 discord = ["py-cord>=2.8,<3"]
-dev = ["httpx>=0.28,<1", "mypy>=1.14,<2", "pytest>=8.3,<9", "ruff>=0.9,<1"]
+dev = ["httpx>=0.28,<1", "mypy>=1.14,<3", "pytest>=8.3,<9", "ruff>=0.9,<1"]
 
 [project.scripts]
 meeting-scribe = "meeting_scribe.cli:main"
