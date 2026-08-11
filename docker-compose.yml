@@ -7,6 +7,10 @@ services:
     env_file:
       - path: .env
         required: false
+      # Private, non-secret deployment overlay: e.g. a named room catalog.
+      # It is ignored by Git and may safely be absent.
+      - path: .env.room-catalog
+        required: false
     environment:
       MEETING_SCRIBE_DATA_DIR: /data
       MEETING_SCRIBE_BIND_HOST: 0.0.0.0
@@ -26,6 +30,10 @@ services:
     profiles: ["discord"]
     env_file:
       - path: .env
+        required: false
+      # Private, non-secret deployment overlay: e.g. a named room catalog.
+      # It is ignored by Git and may safely be absent.
+      - path: .env.room-catalog
         required: false
     environment:
       MEETING_SCRIBE_DATA_DIR: /data
