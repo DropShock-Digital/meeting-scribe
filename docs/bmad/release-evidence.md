@@ -58,3 +58,13 @@ The OpenRouter/Codex/LM Studio choices are **configuration preferences only** in
 | Runtime and visual review | Isolated and deployed desktop plus 390px mobile views were reviewed. A clipped empty-helper label and the user-visible `Offline review` title were found and corrected. Final renders show no clipping, raw IDs, secrets, recording claim, or AI-content claim. |
 | Private deployment | The Tailnet-only review container rebuilt healthy and returned the revised page and fail-closed capture state through its intended private path. |
 | Remote CI | GitHub Actions run `31491072507` passed for the final overflow fix. |
+
+### Capability-truthfulness follow-up
+
+An independent copy/accessibility review found remaining setup/checking language that could suggest recording or a meeting helper may become usable in this build. It was corrected before this release:
+
+- The page leads with **“Private reviews, not recordings.”** and states that this version cannot join calls or record sound.
+- Recording is shown as unavailable; no `ready`, `checking`, `set up`, or `available` path can present it as an action.
+- The helper is an unavailable state only. Provider names, configuration state, and protected-provider details are omitted from the control-room and browser-facing configuration responses.
+- The helper placeholder is now **“No helper available.”** and was visually checked at desktop and 390px mobile widths.
+- **Observed verification:** `21 passed`; JavaScript syntax, lockfile validation, compilation, Ruff, mypy, repository safety scan, normal and Discord-profile Compose validation, a configured-key fixture, rebuilt Tailnet-only container, API boundary check, and deployed desktop review all passed. The fixture and deployment UI exposed no provider name, status, secret, endpoint, raw room ID, or misleading capability claim.
