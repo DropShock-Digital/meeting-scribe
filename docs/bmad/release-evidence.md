@@ -18,7 +18,7 @@ This file is updated only with commands actually run and results actually observ
 | Control-room user path | A clean instance created an offline review record, kept it out of `recording`, exposed Markdown/JSON exports, and finalized it successfully. |
 | Visual review | Desktop and 390px mobile renders were reviewed in no-gateway, no-capture, and offline-review states. A misleading offline-review headline was found and corrected before release. |
 | Private deployment | The Dockerized control room was rebuilt and verified through its Tailscale-bound address. Docker reports a single binding to the host's Tailscale IPv4 address; no public tunnel or Funnel was configured. |
-| Remote CI | GitHub Actions run `31484082709` passed for the control-room release. |
+| Remote CI | GitHub Actions run `31485138123` passed after the capture-claim remediation. |
 | Capture-claim remediation | An independent review identified a false `recording` transition after disclosure acknowledgement. The endpoint now stores disclosure evidence while retaining `disclosing`; the fresh Docker runtime returned `409` for transcript ingestion, confirming fail-closed behavior without verified capture. |
 
 ## Deliberately not claimed
