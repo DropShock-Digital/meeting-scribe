@@ -4,7 +4,7 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
-.pytest-local/
+.pytest-*/
 .mypy_cache/
 .ruff_cache/
 .venv/

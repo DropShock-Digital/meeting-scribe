@@ -5,7 +5,7 @@ from typing import Any
 
 from .config import Settings
 from .models import Meeting, MeetingStatus, now
-from .store import Store
+from .store import StateConflictError, Store
 
 DEFAULT_DISCLOSURE = (
     "This meeting is being recorded and summarized. Please leave now if you do not consent."
@@ -54,13 +54,16 @@ class MeetingService:
         meeting = self.get(meeting_id)
         if meeting.status is not MeetingStatus.DISCLOSING:
             raise StateError("Disclosure can only be delivered before recording starts.")
-        return self.store.transition(
-            meeting,
-            MeetingStatus.RECORDING,
-            "disclosure.delivered",
-            {"delivery": delivery[:80]},
-            now(),
-        )
+        try:
+            return self.store.transition(
+                meeting,
+                MeetingStatus.RECORDING,
+                "disclosure.delivered",
+                {"delivery": delivery[:80]},
+                now(),
+            )
+        except StateConflictError as error:
+            raise StateError("Meeting state changed; disclosure was not delivered twice.") from error
 
     def acknowledge(self, meeting_id: str, participant_id: str) -> None:
         meeting = self.get(meeting_id)
@@ -68,12 +71,16 @@ class MeetingService:
             raise StateError("Meeting is finalized.")
         if not participant_id.strip():
             raise PolicyError("Participant identifier is required.")
-        self.store.append_event(
-            meeting.id,
-            "consent.acknowledged",
-            {"participant_id": participant_id.strip()[:200]},
-            now(),
-        )
+        try:
+            self.store.append_event_if_status(
+                meeting.id,
+                (MeetingStatus.DISCLOSING, MeetingStatus.RECORDING, MeetingStatus.DEGRADED),
+                "consent.acknowledged",
+                {"participant_id": participant_id.strip()[:200]},
+                now(),
+            )
+        except StateConflictError as error:
+            raise StateError("Meeting state changed; acknowledgement was not added.") from error
 
     def transcript(
         self, meeting_id: str, text: str, source: str, speaker: str | None = None
@@ -89,27 +96,51 @@ class MeetingService:
         data: dict[str, Any] = {"text": clean, "source": source.strip()[:80] or "unknown"}
         if speaker and speaker.strip():
             data["speaker"] = speaker.strip()[:200]
-        self.store.append_event(meeting.id, "transcript.segment", data, now())
+        try:
+            self.store.append_event_if_status(
+                meeting.id,
+                (MeetingStatus.RECORDING,),
+                "transcript.segment",
+                data,
+                now(),
+            )
+        except StateConflictError as error:
+            raise StateError("Meeting state changed; transcript segment was not added.") from error
 
     def warn(self, meeting_id: str, component: str, message: str) -> Meeting:
         meeting = self.get(meeting_id)
         if meeting.status is MeetingStatus.FINALIZED:
             raise StateError("Meeting is finalized.")
-        return self.store.transition(
-            meeting,
-            MeetingStatus.DEGRADED,
-            "system.warning",
-            {"component": component[:80], "message": message[:500]},
-            now(),
-        )
+        try:
+            return self.store.transition(
+                meeting,
+                MeetingStatus.DEGRADED,
+                "system.warning",
+                {"component": component[:80], "message": message[:500]},
+                now(),
+            )
+        except StateConflictError as error:
+            raise StateError("Meeting state changed; warning was not applied.") from error
 
     def finalize(self, meeting_id: str, reason: str) -> Meeting:
-        meeting = self.get(meeting_id)
-        if meeting.status is MeetingStatus.FINALIZED:
-            return meeting
-        return self.store.transition(
-            meeting, MeetingStatus.FINALIZED, "meeting.finalized", {"reason": reason[:300]}, now()
-        )
+        # A competing write can win between the read and conditional update. Retry
+        # once with the fresh state so a requested finalization cannot resurrect a
+        # stale status or silently disappear.
+        for _ in range(2):
+            meeting = self.get(meeting_id)
+            if meeting.status is MeetingStatus.FINALIZED:
+                return meeting
+            try:
+                return self.store.transition(
+                    meeting,
+                    MeetingStatus.FINALIZED,
+                    "meeting.finalized",
+                    {"reason": reason[:300]},
+                    now(),
+                )
+            except StateConflictError:
+                continue
+        raise StateError("Meeting state changed repeatedly; finalization was not applied.")
 
     def detail(self, meeting_id: str) -> dict[str, Any]:
         meeting = self.get(meeting_id)

@@ -141,8 +141,15 @@ The Discord adapter is intentionally not a copy-paste production setup. Before e
 1. Create a dedicated bot and keep its token in a protected runtime secret path.
 2. Restrict the bot application, server permissions, operator identities, and voice/text channels to the least access needed.
 3. Use a non-sensitive test guild and verify the exact disclosure, command permissions, reconnect behavior, transcript storage, failure warning, finalization, and export flows.
-4. Complete your own legal/privacy/retention review.
-5. Only then consider a real meeting.
+4. Start the command-only adapter explicitly—never as an implicit side effect:
+   ```bash
+   uv sync --extra discord
+   meeting-scribe discord
+   # or: docker compose --profile discord up -d
+   ```
+   It will refuse to start without `MEETING_SCRIBE_DISCORD_ENABLED=true`, a protected token, and a guild ID.
+5. Complete your own legal/privacy/retention review.
+6. Only then consider a real meeting.
 
 Never put a bot token, recordings, transcript bodies, real Discord IDs, or private server URLs in issues, examples, screenshots, or logs.
 

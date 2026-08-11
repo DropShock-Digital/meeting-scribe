@@ -8,6 +8,10 @@ from typing import Any
 from .models import Event, Meeting, MeetingStatus
 
 
+class StateConflictError(RuntimeError):
+    """The meeting state changed between a request read and its attempted write."""
+
+
 class Store:
     def __init__(self, database_path: Path) -> None:
         self.database_path = database_path
@@ -35,6 +39,7 @@ class Store:
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA foreign_keys = ON")
         connection.execute("PRAGMA journal_mode = WAL")
+        connection.execute("PRAGMA busy_timeout = 5000")
         return connection
 
     def create_meeting(self, meeting: Meeting, event_kind: str, event_data: dict[str, Any]) -> None:
@@ -98,10 +103,15 @@ class Store:
         )
         finalized_at = occurred_at if status is MeetingStatus.FINALIZED else meeting.finalized_at
         with self._connect() as connection:
-            connection.execute(
-                "UPDATE meetings SET status = ?, started_at = ?, finalized_at = ? WHERE id = ?",
-                (status.value, started_at, finalized_at, meeting.id),
+            cursor = connection.execute(
+                """
+                UPDATE meetings SET status = ?, started_at = ?, finalized_at = ?
+                WHERE id = ? AND status = ?
+                """,
+                (status.value, started_at, finalized_at, meeting.id, meeting.status.value),
             )
+            if cursor.rowcount != 1:
+                raise StateConflictError("Meeting status changed before the transition could commit.")
             self._append(connection, meeting.id, event_kind, event_data, occurred_at)
         return Meeting(
             meeting.id,
@@ -120,6 +130,43 @@ class Store:
     ) -> None:
         with self._connect() as connection:
             self._append(connection, meeting_id, kind, data, occurred_at)
+
+    def append_event_if_status(
+        self,
+        meeting_id: str,
+        allowed_statuses: tuple[MeetingStatus, ...],
+        kind: str,
+        data: dict[str, Any],
+        occurred_at: str,
+    ) -> None:
+        """Append only when the current status is still one of the allowed states.
+
+        The status condition lives in the same SQL statement as the insert, so a
+        concurrent finalization cannot create a late event after it commits.
+        """
+        if not allowed_statuses:
+            raise ValueError("At least one allowed status is required.")
+        placeholders = ", ".join("?" for _ in allowed_statuses)
+        query = f"""
+            INSERT INTO events (meeting_id, kind, data_json, occurred_at)
+            SELECT ?, ?, ?, ?
+            WHERE EXISTS (
+                SELECT 1 FROM meetings
+                WHERE id = ? AND status IN ({placeholders})
+            )
+        """
+        values = [
+            meeting_id,
+            kind,
+            json.dumps(data, sort_keys=True),
+            occurred_at,
+            meeting_id,
+            *(status.value for status in allowed_statuses),
+        ]
+        with self._connect() as connection:
+            cursor = connection.execute(query, values)
+            if cursor.rowcount != 1:
+                raise StateConflictError("Meeting status does not permit this event.")
 
     @staticmethod
     def _append(

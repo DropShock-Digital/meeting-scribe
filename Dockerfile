@@ -10,7 +10,7 @@ WORKDIR /app
 COPY --from=ghcr.io/astral-sh/uv:0.11.7 /uv /uvx /usr/local/bin/
 COPY pyproject.toml uv.lock README.md ./
 COPY src ./src
-RUN uv sync --frozen --no-dev --no-editable
+RUN uv sync --frozen --no-dev --no-editable --extra discord
 
 USER app
 ENV PATH="/opt/venv/bin:$PATH" \

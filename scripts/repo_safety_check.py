@@ -35,7 +35,9 @@ RULES = {
 def main() -> int:
     findings: list[str] = []
     for path in ROOT.rglob("*"):
-        if not path.is_file() or any(part in SKIP_PARTS for part in path.parts):
+        if not path.is_file() or any(
+            part in SKIP_PARTS or part.startswith(".pytest-") for part in path.parts
+        ):
             continue
         if path == Path(__file__):
             continue
