@@ -116,17 +116,24 @@ class MeetingService:
         return meeting
 
     def deliver_disclosure(self, meeting_id: str, delivery: str) -> Meeting:
+        """Record notice delivery without claiming audio capture has started.
+
+        A future verified capture adapter must own the separate transition into
+        ``recording``. The current Discord receive boundary is unavailable and
+        must never be bypassed by a browser/API acknowledgement.
+        """
         meeting = self.get(meeting_id)
         if meeting.status is not MeetingStatus.DISCLOSING:
-            raise StateError("Disclosure can only be delivered before recording starts.")
+            raise StateError("Disclosure can only be delivered before capture starts.")
         try:
-            return self.store.transition(
-                meeting,
-                MeetingStatus.RECORDING,
+            self.store.append_event_once_if_status(
+                meeting.id,
+                (MeetingStatus.DISCLOSING,),
                 "disclosure.delivered",
                 {"delivery": delivery[:80]},
                 now(),
             )
+            return meeting
         except StateConflictError as error:
             raise StateError("Meeting state changed; disclosure was not delivered twice.") from error
 

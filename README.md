@@ -132,7 +132,7 @@ The API intentionally has **no endpoint that returns environment variables or to
 | `POST /api/meetings/offline-review` | Create a generated, explicitly non-capturing local review record |
 | `GET /api/meetings` | Recent local meeting records |
 | `POST /api/meetings` | Create an explicitly confirmed, allowlisted meeting |
-| `POST /api/meetings/{id}/disclosure-delivered` | Move from disclosure to recording |
+| `POST /api/meetings/{id}/disclosure-delivered` | Append durable disclosure-delivery evidence; it does **not** claim capture has started |
 | `POST /api/meetings/{id}/acknowledgements` | Store acknowledgement evidence |
 | `POST /api/meetings/{id}/transcript` | Add a validated transcript segment during recording |
 | `POST /api/meetings/{id}/warnings` | Record an honest degraded-state warning |

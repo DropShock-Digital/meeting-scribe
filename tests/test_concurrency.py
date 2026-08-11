@@ -23,7 +23,7 @@ def create_meeting(client: TestClient) -> str:
     return response.json()["id"]
 
 
-def test_disclosure_transition_is_compare_and_swap_atomic(
+def test_disclosure_evidence_is_atomic_without_claiming_capture(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     service = client.app.state.service
@@ -45,7 +45,7 @@ def test_disclosure_transition_is_compare_and_swap_atomic(
     assert sum(outcome is None for outcome in outcomes) == 1
     assert sum(isinstance(outcome, StateError) for outcome in outcomes) == 1
     detail = service.detail(meeting_id)
-    assert detail["meeting"]["status"] == MeetingStatus.RECORDING
+    assert detail["meeting"]["status"] == MeetingStatus.DISCLOSING
     assert [event["kind"] for event in detail["events"]].count("disclosure.delivered") == 1
 
 

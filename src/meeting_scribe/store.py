@@ -168,6 +168,48 @@ class Store:
             if cursor.rowcount != 1:
                 raise StateConflictError("Meeting status does not permit this event.")
 
+    def append_event_once_if_status(
+        self,
+        meeting_id: str,
+        allowed_statuses: tuple[MeetingStatus, ...],
+        kind: str,
+        data: dict[str, Any],
+        occurred_at: str,
+    ) -> None:
+        """Append one durable event only while an allowed lifecycle state remains.
+
+        The event-kind guard and lifecycle condition share the insert statement,
+        so duplicate disclosure acknowledgements cannot race into the ledger.
+        """
+        if not allowed_statuses:
+            raise ValueError("At least one allowed status is required.")
+        placeholders = ", ".join("?" for _ in allowed_statuses)
+        query = f"""
+            INSERT INTO events (meeting_id, kind, data_json, occurred_at)
+            SELECT ?, ?, ?, ?
+            WHERE EXISTS (
+                SELECT 1 FROM meetings
+                WHERE id = ? AND status IN ({placeholders})
+            )
+            AND NOT EXISTS (
+                SELECT 1 FROM events WHERE meeting_id = ? AND kind = ?
+            )
+        """
+        values = [
+            meeting_id,
+            kind,
+            json.dumps(data, sort_keys=True),
+            occurred_at,
+            meeting_id,
+            *(status.value for status in allowed_statuses),
+            meeting_id,
+            kind,
+        ]
+        with self._connect() as connection:
+            cursor = connection.execute(query, values)
+            if cursor.rowcount != 1:
+                raise StateConflictError("Meeting status changed or this event already exists.")
+
     @staticmethod
     def _append(
         connection: sqlite3.Connection,

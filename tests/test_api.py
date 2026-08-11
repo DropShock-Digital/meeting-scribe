@@ -48,8 +48,16 @@ def test_creation_requires_explicit_confirmation_and_allowlists(client: TestClie
     assert client.get("/api/meetings").json() == []
 
 
-def test_lifecycle_requires_disclosure_before_transcript_and_finalizes(client: TestClient) -> None:
+def test_disclosure_evidence_never_claims_capture_without_verified_transport(client: TestClient) -> None:
     meeting_id = create(client)
+    disclosure = client.post(f"/api/meetings/{meeting_id}/disclosure-delivered", json={"delivery": "test"})
+    assert disclosure.status_code == 200
+    assert disclosure.json()["status"] == "disclosing"
+    detail = client.get(f"/api/meetings/{meeting_id}").json()
+    assert [event["kind"] for event in detail["events"]] == [
+        "meeting.created",
+        "disclosure.delivered",
+    ]
     assert (
         client.post(
             f"/api/meetings/{meeting_id}/transcript", json={"text": "too soon", "source": "test"}
@@ -58,20 +66,7 @@ def test_lifecycle_requires_disclosure_before_transcript_and_finalizes(client: T
     )
     assert (
         client.post(
-            f"/api/meetings/{meeting_id}/disclosure-delivered", json={"delivery": "test"}
-        ).status_code
-        == 200
-    )
-    assert (
-        client.post(
             f"/api/meetings/{meeting_id}/acknowledgements", json={"participant_id": "alex"}
-        ).status_code
-        == 204
-    )
-    assert (
-        client.post(
-            f"/api/meetings/{meeting_id}/transcript",
-            json={"text": "Ship the safe core first.", "source": "test", "speaker": "Alex"},
         ).status_code
         == 204
     )
@@ -86,14 +81,10 @@ def test_lifecycle_requires_disclosure_before_transcript_and_finalizes(client: T
     )
 
 
-def test_exports_are_deterministic_and_include_event_evidence(client: TestClient) -> None:
+def test_exports_are_deterministic_and_include_disclosure_evidence(client: TestClient) -> None:
     meeting_id = create(client)
     client.post(f"/api/meetings/{meeting_id}/disclosure-delivered", json={"delivery": "test"})
-    client.post(
-        f"/api/meetings/{meeting_id}/transcript",
-        json={"text": "Approve the documented release.", "source": "manual-import"},
-    )
     markdown = client.get(f"/api/meetings/{meeting_id}/export.md")
     payload = client.get(f"/api/meetings/{meeting_id}/export.json")
-    assert markdown.status_code == 200 and "Approve the documented release." in markdown.text
-    assert payload.status_code == 200 and "transcript.segment" in payload.text
+    assert markdown.status_code == 200 and "Disclosure:" in markdown.text
+    assert payload.status_code == 200 and "disclosure.delivered" in payload.text
