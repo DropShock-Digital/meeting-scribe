@@ -71,6 +71,11 @@ def configuration(request: Request) -> dict[str, Any]:
     }
 
 
+@router.get("/console")
+def console(request: Request) -> dict[str, Any]:
+    return service(request).console_snapshot()
+
+
 @router.get("/meetings")
 def list_meetings(request: Request) -> list[dict[str, Any]]:
     return [meeting.public() for meeting in service(request).store.list_meetings()]
@@ -90,6 +95,15 @@ def create_meeting(payload: CreateMeeting, request: Request) -> dict[str, Any]:
             )
             .public()
         )
+    except (PolicyError, StateError) as error:
+        fail(error)
+
+
+@router.post("/meetings/offline-review", status_code=201)
+def create_offline_review(request: Request) -> dict[str, Any]:
+    try:
+        meeting = service(request).create_offline_review()
+        return {"meeting": service(request).console_meeting(meeting)}
     except (PolicyError, StateError) as error:
         fail(error)
 

@@ -1,16 +1,56 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Meeting Scribe</title><link rel="stylesheet" href="/styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#090b11">
+  <title>Meeting Scribe — Control room</title>
+  <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-<a class="skip" href="#main">Skip to meetings</a>
-<header><p class="eyebrow">SELF-HOSTED • CONSENT-AWARE</p><h1>Meeting Scribe</h1><p>Clear disclosure. Durable local records. No cloud by default.</p></header>
-<main id="main">
-<section class="card" aria-labelledby="start-title"><h2 id="start-title">Start a meeting</h2>
-<p class="hint">This local demo only permits the configured demo channel and operator. A real Discord adapter stays disabled until you deliberately configure it.</p>
-<form id="start-form"><label>Meeting title<input name="title" required maxlength="200" value="Weekly planning"></label><label>Channel ID<input name="channel_id" required value="demo-room"></label><label>Operator ID<input name="operator_id" required value="local-demo"></label><label>Disclosure<textarea name="disclosure" required>This meeting is being recorded and summarized. Please leave now if you do not consent.</textarea></label><label class="check"><input type="checkbox" name="confirmed" required> I confirm this disclosure will be delivered before capture.</label><button type="submit">Create disclosed meeting</button></form><p id="form-status" role="status"></p></section>
-<section aria-labelledby="meetings-title"><div class="section-heading"><div><p class="eyebrow">LOCAL RECORDS</p><h2 id="meetings-title">Meetings</h2></div><button id="refresh" class="secondary">Refresh</button></div><div id="meetings" class="meeting-list" aria-live="polite"></div></section>
-</main><footer>Meeting Scribe records operator evidence; it does not determine legal consent.</footer><script src="/app.js"></script>
-</body></html>
+  <a class="skip" href="#control-room">Skip to control room</a>
+  <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Meeting Scribe control room"><span class="brand-mark" aria-hidden="true"></span><span>MEETING SCRIBE</span></a>
+    <div class="topbar-status"><span class="pulse" aria-hidden="true"></span><span id="top-status">CONTROL ROOM</span></div>
+  </header>
+  <main id="control-room">
+    <section class="hero" aria-labelledby="state-title">
+      <div class="hero-copy">
+        <p class="eyebrow">PRIVATE MEETING CONTROL ROOM</p>
+        <h1 id="state-title">Control room,<br><em>standing by.</em></h1>
+        <p id="state-subtitle" class="lede">Connect the verified Discord gateway to enable automatic meeting flow. Voice capture remains safely paused until its encrypted receive path has passed verification.</p>
+        <div class="hero-actions">
+          <button id="create-review" class="primary">Create offline review record <span aria-hidden="true">↗</span></button>
+          <button id="refresh" class="quiet">Refresh state</button>
+        </div>
+        <p id="action-status" class="action-status" role="status"></p>
+      </div>
+      <aside class="state-panel" aria-labelledby="system-title">
+        <div class="panel-top"><p class="eyebrow">SYSTEM STATE</p><span id="system-badge" class="status-badge">CHECKING</span></div>
+        <h2 id="system-title">Nothing to chase.</h2>
+        <p id="system-summary">Reading the local control plane.</p>
+        <dl class="signal-list" id="signals" aria-label="System signals"></dl>
+      </aside>
+    </section>
+
+    <section class="capability" aria-labelledby="capability-title">
+      <div class="capability-copy"><p class="eyebrow">CAPTURE BOUNDARY</p><h2 id="capability-title">Truth before activity.</h2><p id="capture-reason">Loading capture capability…</p></div>
+      <div class="capability-actions"><span id="capture-label" class="pause-label">CHECKING</span><button id="view-disclosure" class="outline">View automatic disclosure</button></div>
+    </section>
+
+    <section class="workbench" aria-label="Meeting activity">
+      <div class="section-heading"><div><p class="eyebrow">RIGHT NOW</p><h2>Active sessions</h2></div><p id="active-count" class="count"></p></div>
+      <div id="active-meetings" class="active-grid" aria-live="polite"></div>
+    </section>
+
+    <section class="library" aria-labelledby="library-title">
+      <div class="section-heading"><div><p class="eyebrow">LOCAL RECORDS</p><h2 id="library-title">Meeting library</h2></div><p class="library-note">Exports stay on this machine.</p></div>
+      <div id="archive" class="archive-list" aria-live="polite"></div>
+    </section>
+  </main>
+  <footer><span>MEETING SCRIBE</span><span>Local-first meeting records · no cloud by default</span></footer>
+  <dialog id="disclosure-dialog" aria-labelledby="disclosure-title"><form method="dialog"><button class="dialog-close" aria-label="Close disclosure">×</button><p class="eyebrow">AUTOMATIC NOTICE</p><h2 id="disclosure-title">Generated before capture.</h2><blockquote id="disclosure-text"></blockquote><p>When a verified Discord gateway starts a configured meeting, it sends this notice and records delivery before any capture may begin.</p></form></dialog>
+  <script src="/app.js"></script>
+</body>
+</html>

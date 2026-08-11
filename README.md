@@ -7,7 +7,7 @@
 [![Local-first](https://img.shields.io/badge/data-local--first-1e453d?style=flat-square)](docs/PRIVACY.md)
 [![Consent-aware](https://img.shields.io/badge/recording-explicitly%20started-fbbf24?style=flat-square)](docs/PRIVACY.md)
 
-Meeting Scribe is a standalone, Docker-first application for recording the meetings **you intentionally choose** to preserve. It has a local operator console, a durable SQLite event ledger, consent/disclosure evidence, transcript ingestion, deterministic Markdown/JSON exports, and a separately configured Discord command adapter.
+Meeting Scribe is a standalone, Docker-first application for meeting records you intentionally preserve. It has a private **control room** for observing an automatic Discord workflow, a durable SQLite event ledger, disclosure evidence, transcript ingestion, deterministic Markdown/JSON exports, and a separately configured Discord command adapter.
 
 It is deliberately **not** an always-listening bot, a hosted meeting service, a legal consent product, or an automatic task/CRM/message automation system.
 
@@ -23,12 +23,12 @@ That boundary is intentional: a recorder must never pretend it captured or trans
 
 | Capability | Included now | Safety posture |
 |---|---:|---|
-| Explicit allowlisted meeting start | Yes | Requires approved operator, approved channel, and disclosure confirmation |
+| Allowlisted meeting lifecycle API | Yes | Integration-level guardrail; normal operators do not enter identifiers in the control room |
 | Disclosure + acknowledgement ledger | Yes | Every transition is stored as an append-only event |
 | Local meeting lifecycle | Yes | `disclosing → recording/degraded → finalized` |
 | Validated transcript segments | Yes | Accepted only during `recording`; never placed in app logs |
 | Deterministic Markdown and JSON exports | Yes | Rebuilt from local event/state records |
-| Local operator console | Yes | Localhost-first; no browser secret entry point |
+| Private control room | Yes | Shows honest state; hides secrets and configuration IDs; supports non-capturing offline review records |
 | Docker Compose reference setup | Yes | Binds to loopback by default; runs non-root with dropped capabilities |
 | Discord slash-command bridge | Yes, optional | Disabled until explicitly configured; operator/channel allowlists apply |
 | Real Discord audio receive / STT | Adapter boundary | Requires your own opt-in validation before production use |
@@ -46,7 +46,7 @@ uv sync --extra dev
 uv run meeting-scribe serve
 ```
 
-Open [http://127.0.0.1:8080](http://127.0.0.1:8080). The demo permits only `local-demo` in `demo-room`, so you can exercise the complete consent-first lifecycle without a Discord account or token.
+Open [http://127.0.0.1:8080](http://127.0.0.1:8080). The control room hides the default demo identity and lets you create an explicitly non-capturing offline review record; the allowlisted lifecycle API remains available for integration tests.
 
 ### Docker
 
@@ -67,9 +67,9 @@ MEETING_SCRIBE_HOST_BIND=100.x.y.z docker compose -p meeting-scribe-review up --
 
 ```mermaid
 flowchart LR
-  O[Approved operator] -->|explicit confirmation| C[Create disclosed meeting]
-  C --> D[Deliver visible/audible disclosure]
-  D --> R[Recording state]
+  C[Approved room configuration] --> G[Verified Discord gateway detects meeting]
+  G --> D[Deliver visible/audible disclosure]
+  D --> R[Verified capture starts]
   R --> T[Validated transcript events]
   R --> W[Honest warning event]
   T --> F[Finalize]
@@ -79,11 +79,11 @@ flowchart LR
 
 ### Consent is a state transition, not a footer
 
-1. An approved operator selects an allowlisted voice channel and confirms the disclosure.
-2. Meeting Scribe creates a meeting in **`disclosing`** state. It does not accept transcript content yet.
-3. The Discord adapter or local operator records that the disclosure was delivered; only then does the meeting enter **`recording`**.
+1. Deployment configuration defines the approved rooms, operating identity, and disclosure. The normal control-room flow does not ask a person to re-enter those values.
+2. A verified Discord gateway detects an approved meeting and creates a meeting in **`disclosing`** state. It does not accept transcript content yet.
+3. The gateway delivers the visible/audible disclosure and records delivery evidence; only a verified capture worker may move the meeting to **`recording`**.
 4. The application retains acknowledgement, warning, transcript, and finalization evidence in an append-only event ledger.
-5. A finalized meeting is read-only and exportable.
+5. A finalized meeting is read-only and exportable. Offline review records remain non-capturing.
 
 Meeting Scribe records operator evidence. It cannot determine whether recording is lawful or every attendee has validly consented. Read [Privacy and consent](docs/PRIVACY.md) before real use.
 
@@ -128,6 +128,8 @@ The API intentionally has **no endpoint that returns environment variables or to
 | Route | Purpose |
 |---|---|
 | `GET /api/health` | Non-sensitive readiness response |
+| `GET /api/console` | Sanitized control-room read model: capability and record status without secrets or configured IDs |
+| `POST /api/meetings/offline-review` | Create a generated, explicitly non-capturing local review record |
 | `GET /api/meetings` | Recent local meeting records |
 | `POST /api/meetings` | Create an explicitly confirmed, allowlisted meeting |
 | `POST /api/meetings/{id}/disclosure-delivered` | Move from disclosure to recording |

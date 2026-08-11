@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from .capture import DISCORD_CAPTURE_CAPABILITY
 from .config import Settings
 from .models import Meeting, MeetingStatus, now
 from .store import StateConflictError, Store
@@ -43,6 +44,70 @@ class MeetingService:
             meeting, "meeting.created", {"operator_confirmed_disclosure": True}
         )
         return meeting
+
+    def console_meeting(self, meeting: Meeting) -> dict[str, Any]:
+        """Return operator-readable meeting state without configuration identifiers."""
+        mode = "offline-review" if any(
+            event.kind == "review.created" for event in self.store.list_events(meeting.id)
+        ) else "meeting"
+        return {
+            "id": meeting.id,
+            "title": meeting.title,
+            "status": meeting.status,
+            "mode": mode,
+            "created_at": meeting.created_at,
+            "started_at": meeting.started_at,
+            "finalized_at": meeting.finalized_at,
+        }
+
+    def create_offline_review(self) -> Meeting:
+        """Create a clearly non-capturing record for console walkthroughs."""
+        if not self.settings.channel_allowlist or not self.settings.operator_allowlist:
+            raise PolicyError("Configure an approved room and operator before creating a review record.")
+        created_at = now()
+        stamp = created_at.split(".", 1)[0].replace("T", " ") + " UTC"
+        meeting = Meeting.new(
+            f"Offline review · {stamp}",
+            sorted(self.settings.channel_allowlist)[0],
+            sorted(self.settings.operator_allowlist)[0],
+            DEFAULT_DISCLOSURE,
+        )
+        self.store.create_meeting(
+            meeting,
+            "meeting.created",
+            {"origin": "offline-review", "capture_requested": False},
+        )
+        self.store.append_event_if_status(
+            meeting.id,
+            (MeetingStatus.DISCLOSING,),
+            "review.created",
+            {"mode": "offline", "capture": "not-started"},
+            now(),
+        )
+        return meeting
+
+    def console_snapshot(self) -> dict[str, Any]:
+        """Read model for the operator console; deliberately omits secrets and IDs."""
+        meetings = self.store.list_meetings()
+        active = [meeting for meeting in meetings if meeting.status is not MeetingStatus.FINALIZED]
+        archived = [meeting for meeting in meetings if meeting.status is MeetingStatus.FINALIZED]
+        capture = DISCORD_CAPTURE_CAPABILITY
+        return {
+            "system": {
+                "discord_enabled": self.settings.discord_enabled,
+                "configured_room_count": len(self.settings.channel_allowlist),
+                "configured_operator_count": len(self.settings.operator_allowlist),
+                "disclosure_mode": "automatic-after-verified-gateway-delivery",
+            },
+            "capture": {
+                "available": capture.available,
+                "label": "Ready" if capture.available else "Safely paused",
+                "reason": capture.reason,
+            },
+            "disclosure": DEFAULT_DISCLOSURE,
+            "active": [self.console_meeting(meeting) for meeting in active],
+            "archive": [self.console_meeting(meeting) for meeting in archived],
+        }
 
     def get(self, meeting_id: str) -> Meeting:
         meeting = self.store.get_meeting(meeting_id)
