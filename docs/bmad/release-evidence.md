@@ -47,3 +47,14 @@ The OpenRouter/Codex/LM Studio choices are **configuration preferences only** in
 
 - **Remote CI:** GitHub Actions run `31489221289` passed after adding the optional private catalog overlay.
 - **Private review deployment:** The existing Tailnet-only container was rebuilt, restored to its Tailnet bind, and returned the two named approved rooms through a sanitized console payload. Capture and all AI providers remain unavailable/unconfigured.
+
+## Human-language interface revision
+
+| Check | Observed result |
+|---|---|
+| Copy and interaction scope | The room, helper, disclosure, meeting-state, empty-state, export, and review-completion language was rewritten for plain human use; technical labels, raw identifiers, secrets, and implementation detail remain out of the rendered experience. |
+| Automated behavior | `pytest -q --basetemp .pytest-copy-release` passed: **21 tests**. The focused post-review check also passed. |
+| Source gates | JavaScript syntax, lockfile validation, bytecode compilation, Ruff, mypy, repository safety scan, Compose profiles, and whitespace checks passed. |
+| Runtime and visual review | Isolated and deployed desktop plus 390px mobile views were reviewed. A clipped empty-helper label and the user-visible `Offline review` title were found and corrected. Final renders show no clipping, raw IDs, secrets, recording claim, or AI-content claim. |
+| Private deployment | The Tailnet-only review container rebuilt healthy and returned the revised page and fail-closed capture state through its intended private path. |
+| Remote CI | GitHub Actions run `31491072507` passed for the final overflow fix. |
