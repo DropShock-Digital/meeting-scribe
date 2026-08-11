@@ -1,0 +1,23 @@
+services:
+  meeting-scribe:
+    build: .
+    image: meeting-scribe:local
+    ports:
+      - "127.0.0.1:8088:8080"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      MEETING_SCRIBE_DATA_DIR: /data
+      MEETING_SCRIBE_BIND_HOST: 0.0.0.0
+      MEETING_SCRIBE_PORT: "8080"
+    volumes:
+      - meeting-scribe-data:/data
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+volumes:
+  meeting-scribe-data:
