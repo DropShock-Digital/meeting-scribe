@@ -55,7 +55,13 @@ cp .env.example .env
 docker compose up --build
 ```
 
-Open [http://127.0.0.1:8088](http://127.0.0.1:8088). The Compose reference binds to `127.0.0.1` only.
+Open [http://127.0.0.1:8088](http://127.0.0.1:8088). The Compose reference binds to `127.0.0.1` only by default.
+
+For a **Tailnet-only** review surface, set `MEETING_SCRIBE_HOST_BIND` to the host's currently verified Tailscale IPv4 address before starting Compose. Do not use `0.0.0.0`.
+
+```bash
+MEETING_SCRIBE_HOST_BIND=100.x.y.z docker compose -p meeting-scribe-review up --build -d
+```
 
 ## The core flow
 

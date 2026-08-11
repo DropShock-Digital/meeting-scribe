@@ -3,7 +3,7 @@ services:
     build: .
     image: meeting-scribe:local
     ports:
-      - "127.0.0.1:8088:8080"
+      - "${MEETING_SCRIBE_HOST_BIND:-127.0.0.1}:8088:8080"
     env_file:
       - path: .env
         required: false
