@@ -16,11 +16,10 @@ const providerSelector = document.querySelector('#provider-selector');
 const preferenceStatus = document.querySelector('#preference-status');
 
 const ROOM_PREFERENCE = 'meeting-scribe.room-preference';
-const PROVIDER_PREFERENCE = 'meeting-scribe.provider-preference';
 
 const esc = value => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
 const time = value => new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
-const recordLinks = meeting => `<div class="record-links"><a href="/api/meetings/${encodeURIComponent(meeting.id)}/export.md">Open notes</a><a href="/api/meetings/${encodeURIComponent(meeting.id)}/export.json">Download record</a></div>`;
+const recordLinks = meeting => `<div class="record-links"><a href="/api/meetings/${encodeURIComponent(meeting.id)}/export.md">Open notes</a><a href="/api/meetings/${encodeURIComponent(meeting.id)}/export.json">Open full record</a></div>`;
 
 function signal(label, value, tone = 'neutral') {
   return `<div class="signal"><dt><span class="signal-dot ${tone}" aria-hidden="true"></span>${esc(label)}</dt><dd>${esc(value)}</dd></div>`;
@@ -42,9 +41,9 @@ function option(value, label, disabled = false) {
   return node;
 }
 
-function renderPreferences(rooms, providers) {
+function renderPreferences(rooms) {
   roomSelector.replaceChildren();
-  if (!rooms.length) roomSelector.append(option('', 'No approved rooms are set up yet'));
+  if (!rooms.length) roomSelector.append(option('', 'No approved rooms are available.'));
   for (const room of rooms) roomSelector.append(option(room.key, room.label));
   roomSelector.disabled = rooms.length === 0;
   const savedRoom = stored(ROOM_PREFERENCE);
@@ -52,40 +51,24 @@ function renderPreferences(rooms, providers) {
   if (selectedRoom) roomSelector.value = selectedRoom.key;
 
   providerSelector.replaceChildren();
-  const configuredProviders = providers.filter(provider => provider.configured);
-  if (!configuredProviders.length) providerSelector.append(option('', 'No helper set up'));
-  for (const provider of providers) {
-    providerSelector.append(option(
-      provider.key,
-      `${provider.label} — ${provider.configured ? 'set up' : 'needs setup'}`,
-      !provider.configured,
-    ));
-  }
-  providerSelector.disabled = configuredProviders.length === 0;
-  const savedProvider = stored(PROVIDER_PREFERENCE);
-  const selectedProvider = configuredProviders.find(provider => provider.key === savedProvider)
-    || configuredProviders[0];
-  if (selectedProvider) providerSelector.value = selectedProvider.key;
+  providerSelector.append(option('', 'No helper available.'));
+  providerSelector.disabled = true;
 
-  const roomCopy = selectedRoom ? `Next room: ${selectedRoom.label}.` : 'No approved rooms are set up yet.';
-  const helperCopy = selectedProvider
-    ? `Meeting helper: ${selectedProvider.label}.`
-    : 'No meeting helper is set up yet.';
-  preferenceStatus.textContent = `${roomCopy} ${helperCopy} Saved only in this browser. Nothing has started.`;
+  const roomCopy = selectedRoom ? `Next room: ${selectedRoom.label}.` : 'No approved rooms are available.';
+  preferenceStatus.textContent = `${roomCopy} No meeting helper is available. Saved only in this browser. Nothing has started.`;
 }
 
 function meetingCard(meeting) {
   const privateReview = meeting.mode === 'offline-review';
-  const waiting = meeting.status === 'disclosing';
   const detail = privateReview
     ? 'Private review only. It does not join a call or record sound.'
-    : waiting ? 'Waiting for the meeting connection.' : 'Meeting status is being updated.';
-  const closeLabel = privateReview ? 'Finish review' : 'Finish meeting';
-  return `<article class="meeting-card"><div class="meeting-card-top"><p class="status ${esc(meeting.status)}">${privateReview ? 'PRIVATE REVIEW' : waiting ? 'WAITING' : esc(meeting.status)}</p><time datetime="${esc(meeting.created_at)}">${esc(time(meeting.created_at))}</time></div><h3>${esc(meeting.title)}</h3><p>${esc(detail)}</p><div class="card-actions">${recordLinks(meeting)}${meeting.status !== 'finalized' ? `<button class="finish" data-finalize="${esc(meeting.id)}">${closeLabel}</button>` : ''}</div></article>`;
+    : 'This record does not join a call or record sound.';
+  const closeLabel = privateReview ? 'Finish review' : 'Finish record';
+  return `<article class="meeting-card"><div class="meeting-card-top"><p class="status ${esc(meeting.status)}">${privateReview ? 'PRIVATE REVIEW' : 'MEETING RECORD'}</p><time datetime="${esc(meeting.created_at)}">${esc(time(meeting.created_at))}</time></div><h3>${esc(meeting.title)}</h3><p>${esc(detail)}</p><div class="card-actions">${recordLinks(meeting)}${meeting.status !== 'finalized' ? `<button class="finish" data-finalize="${esc(meeting.id)}">${closeLabel}</button>` : ''}</div></article>`;
 }
 
 function emptyActive() {
-  return `<article class="empty-state"><span class="empty-mark" aria-hidden="true">◌</span><div><h3>No meeting is open.</h3><p>When a meeting is active, it will show up here.</p></div></article>`;
+  return `<article class="empty-state"><span class="empty-mark" aria-hidden="true">◌</span><div><h3>No record is open.</h3><p>Private reviews and meeting records appear here.</p></div></article>`;
 }
 
 function archiveRow(meeting) {
@@ -93,46 +76,32 @@ function archiveRow(meeting) {
 }
 
 function render(snapshot) {
-  const { system, rooms = [], providers = [], capture, disclosure, active, archive: archived } = snapshot;
-  const liveActive = active.some(meeting => meeting.mode !== 'offline-review');
-  const offlineReviewOpen = active.some(meeting => meeting.mode === 'offline-review');
-  const capturePaused = !capture.available;
-  const gatewayConfigured = system.discord_enabled;
-  stateTitle.innerHTML = liveActive
-    ? 'A meeting is<br><em>underway.</em>'
-    : offlineReviewOpen
-      ? 'Private review,<br><em>open.</em>'
-      : gatewayConfigured
-        ? 'Set up and<br><em>waiting.</em>'
-        : 'Nothing to record,<br><em>yet.</em>';
-  stateSubtitle.textContent = liveActive
-    ? 'The current meeting is being managed here.'
-    : offlineReviewOpen
-      ? 'This private review cannot join a call or record sound.'
-      : gatewayConfigured
-        ? capturePaused
-          ? 'Your room settings are saved. Recording stays off until this connection has been fully checked.'
-          : 'This meeting can begin after people receive the participant notice.'
-        : 'Pick a room when you are ready. Recording stays off until this connection has been fully checked.';
-  systemBadge.textContent = capturePaused ? 'NOT RECORDING' : 'RECORDING AVAILABLE';
-  systemBadge.className = `status-badge ${capturePaused ? 'hold' : 'ready'}`;
-  systemSummary.textContent = capturePaused
-    ? gatewayConfigured ? 'Your room settings are saved. Nothing is recording.' : 'Nothing is recording.'
-    : 'Recording can begin after the participant notice.';
+  const { system, rooms = [], disclosure, active, archive: archived } = snapshot;
+  const openReview = active.some(meeting => meeting.mode === 'offline-review');
+  const openRecord = active.length > 0;
+  stateTitle.innerHTML = openReview
+    ? 'Private review,<br><em>open.</em>'
+    : openRecord
+      ? 'Meeting record,<br><em>open.</em>'
+      : 'Private reviews,<br><em>not recordings.</em>';
+  stateSubtitle.textContent = openRecord
+    ? 'This record cannot join a call or record sound.'
+    : 'This version cannot join calls or record sound.';
+  systemBadge.textContent = 'RECORDING OFF';
+  systemBadge.className = 'status-badge hold';
+  systemSummary.textContent = 'Private reviews are available.';
   signals.innerHTML = [
-    signal('Approved rooms', system.configured_room_count ? `${system.configured_room_count} set up` : 'None yet', system.configured_room_count ? 'ready' : 'neutral'),
-    signal('Meeting connection', system.discord_enabled ? 'Set up' : 'Not set up', system.discord_enabled ? 'ready' : 'neutral'),
-    signal('Participant notice', 'Shown first', 'ready'),
-    signal('Recording', capturePaused ? 'Off' : 'Available', capturePaused ? 'hold' : 'ready'),
+    signal('Approved rooms', system.configured_room_count ? `${system.configured_room_count} available` : 'None available', system.configured_room_count ? 'ready' : 'neutral'),
+    signal('Calls', 'Not available', 'neutral'),
+    signal('Participant notice', 'Required before any future recording', 'neutral'),
+    signal('Recording', 'Not available', 'hold'),
   ].join('');
-  captureLabel.textContent = capturePaused ? 'RECORDING OFF' : 'AVAILABLE';
-  captureLabel.className = `pause-label ${capturePaused ? 'hold' : 'ready'}`;
-  captureReason.textContent = capturePaused
-    ? 'Recording is off until this connection has been fully checked.'
-    : 'People see the participant notice before recording can begin.';
+  captureLabel.textContent = 'RECORDING OFF';
+  captureLabel.className = 'pause-label hold';
+  captureReason.textContent = 'Recording is not available.';
   disclosureText.textContent = disclosure;
-  renderPreferences(rooms, providers);
-  activeCount.textContent = active.length ? `${active.length} meeting${active.length === 1 ? '' : 's'} open` : 'NO MEETINGS OPEN';
+  renderPreferences(rooms);
+  activeCount.textContent = active.length ? `${active.length} record${active.length === 1 ? '' : 's'} open` : 'NO RECORDS OPEN';
   activeMeetings.innerHTML = active.length ? active.map(meetingCard).join('') : emptyActive();
   archive.innerHTML = archived.length ? archived.map(archiveRow).join('') : '<p class="archive-empty">Finished meetings will be saved here.</p>';
 }
@@ -167,11 +136,7 @@ document.querySelector('#refresh').addEventListener('click', () => void load());
 document.querySelector('#view-disclosure').addEventListener('click', () => disclosureDialog.showModal());
 roomSelector.addEventListener('change', () => {
   remember(ROOM_PREFERENCE, roomSelector.value);
-  preferenceStatus.textContent = `Next room: ${roomSelector.selectedOptions[0]?.textContent || 'approved room'}. Saved only in this browser. Nothing has started.`;
-});
-providerSelector.addEventListener('change', () => {
-  remember(PROVIDER_PREFERENCE, providerSelector.value);
-  preferenceStatus.textContent = `Meeting helper: ${providerSelector.selectedOptions[0]?.textContent || 'meeting helper'}. Saved only in this browser. Nothing has started.`;
+  preferenceStatus.textContent = `Next room: ${roomSelector.selectedOptions[0]?.textContent || 'approved room'}. No meeting helper is available. Saved only in this browser. Nothing has started.`;
 });
 activeMeetings.addEventListener('click', async event => {
   const button = event.target.closest('[data-finalize]');

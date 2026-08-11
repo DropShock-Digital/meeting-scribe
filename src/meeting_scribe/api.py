@@ -70,15 +70,6 @@ def configuration(request: Request) -> dict[str, Any]:
         "rooms": [
             {"key": room.key, "label": room.label} for room in settings.voice_rooms
         ],
-        "ai_providers": [
-            {
-                "key": provider.key,
-                "label": provider.label,
-                "detail": provider.detail,
-                "configured": provider.configured,
-            }
-            for provider in settings.ai_providers
-        ],
     }
 
 

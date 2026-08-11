@@ -1,24 +1,19 @@
 from fastapi.testclient import TestClient
 
 
-def test_console_snapshot_hides_configuration_identifiers_and_reports_capture_boundary(
-    client: TestClient,
-) -> None:
+def test_console_snapshot_hides_provider_and_capture_configuration(client: TestClient) -> None:
     response = client.get("/api/console")
     assert response.status_code == 200
     payload = response.json()
     serialized = response.text
-    assert payload["capture"]["available"] is False
-    assert payload["system"]["configured_room_count"] == 1
-    assert payload["capture"]["label"] == "Safely paused"
+    assert payload["system"] == {"configured_room_count": 1}
     assert payload["rooms"] == [{"key": "review-room", "label": "Demo room"}]
-    assert {provider["key"] for provider in payload["providers"]} == {
-        "codex-oauth", "openrouter", "lmstudio", "compatible"
-    }
-    assert all(provider["configured"] is False for provider in payload["providers"])
+    assert "providers" not in payload
+    assert "capture" not in payload
     assert "demo-room" not in serialized
     assert "local-demo" not in serialized
     assert "discord_token" not in serialized
+    assert "openrouter" not in serialized
 
 
 def test_offline_review_uses_configured_identity_without_claiming_capture(client: TestClient) -> None:
@@ -47,7 +42,7 @@ def test_offline_review_uses_configured_identity_without_claiming_capture(client
     ).status_code == 409
 
 
-def test_console_sanitizes_named_room_and_configured_provider(tmp_path, monkeypatch) -> None:
+def test_console_never_exposes_configured_provider_details(tmp_path, monkeypatch) -> None:
     key_file = tmp_path / "openrouter-key"
     key_file.write_text("test-only-secret", encoding="utf-8")
     monkeypatch.setenv("MEETING_SCRIBE_DATA_DIR", str(tmp_path / "data"))
@@ -60,13 +55,16 @@ def test_console_sanitizes_named_room_and_configured_provider(tmp_path, monkeypa
     from meeting_scribe.main import create_app
 
     with TestClient(create_app()) as configured_client:
-        response = configured_client.get("/api/console")
+        console = configured_client.get("/api/console")
+        configuration = configured_client.get("/api/configuration")
 
-    payload = response.json()
-    serialized = response.text
-    openrouter = next(provider for provider in payload["providers"] if provider["key"] == "openrouter")
-    assert payload["rooms"] == [{"key": "review-room", "label": "Review room"}]
-    assert openrouter["configured"] is True
-    assert "123456789012345678" not in serialized
-    assert "test-only-secret" not in serialized
-    assert str(key_file) not in serialized
+    console_text = console.text
+    configuration_text = configuration.text
+    assert console.json()["rooms"] == [{"key": "review-room", "label": "Review room"}]
+    assert "providers" not in console.json()
+    assert "ai_providers" not in configuration.json()
+    for text in (console_text, configuration_text):
+        assert "123456789012345678" not in text
+        assert "test-only-secret" not in text
+        assert str(key_file) not in text
+        assert "openrouter" not in text

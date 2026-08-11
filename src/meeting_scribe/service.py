@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from .capture import DISCORD_CAPTURE_CAPABILITY
 from .config import Settings
 from .models import Meeting, MeetingStatus, now
 from .store import StateConflictError, Store
@@ -91,31 +90,13 @@ class MeetingService:
         meetings = self.store.list_meetings()
         active = [meeting for meeting in meetings if meeting.status is not MeetingStatus.FINALIZED]
         archived = [meeting for meeting in meetings if meeting.status is MeetingStatus.FINALIZED]
-        capture = DISCORD_CAPTURE_CAPABILITY
         return {
             "system": {
-                "discord_enabled": self.settings.discord_enabled,
                 "configured_room_count": len(self.settings.voice_rooms),
-                "configured_operator_count": len(self.settings.operator_allowlist),
-                "disclosure_mode": "automatic-after-verified-gateway-delivery",
             },
             "rooms": [
                 {"key": room.key, "label": room.label} for room in self.settings.voice_rooms
             ],
-            "providers": [
-                {
-                    "key": provider.key,
-                    "label": provider.label,
-                    "detail": provider.detail,
-                    "configured": provider.configured,
-                }
-                for provider in self.settings.ai_providers
-            ],
-            "capture": {
-                "available": capture.available,
-                "label": "Ready" if capture.available else "Safely paused",
-                "reason": capture.reason,
-            },
             "disclosure": DEFAULT_DISCLOSURE,
             "active": [self.console_meeting(meeting) for meeting in active],
             "archive": [self.console_meeting(meeting) for meeting in archived],

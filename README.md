@@ -89,7 +89,7 @@ Meeting Scribe records operator evidence. It cannot determine whether recording 
 
 ## Architecture
 
-The core service owns policy, lifecycle state, SQLite persistence, and exports. Discord, audio receive, speech-to-text, AI enrichment, and workflow integrations are adapters—not dependencies of the core. The control room can keep a local room/provider preference, but does not call an AI provider or join Discord until those adapters pass their own verification gates.
+The core service owns policy, lifecycle state, SQLite persistence, and exports. Discord, audio receive, speech-to-text, AI enrichment, and workflow integrations are adapters—not dependencies of the core. The control room can keep a local room preference, but provider configuration stays out of the browser until an AI adapter passes its own verification gates.
 
 ```mermaid
 flowchart TB

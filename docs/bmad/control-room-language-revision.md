@@ -5,25 +5,25 @@
 ## Product brief
 
 - **Audience:** a meeting host, not a developer or deployment operator.
-- **Job:** see what is happening, choose a room and optional writing helper for a later supported workflow, and safely open or finish a private review record.
+- **Job:** see what is happening, choose a room for a later supported workflow, and safely start or finish a private review record.
 - **Tone:** calm, plain, private, and direct. No technical product theatre.
-- **Truth boundary:** the current build cannot join Discord, record sound, or send meeting content to an AI provider. The interface must say that once in clear language, not repeat implementation details.
+- **Truth boundary:** the current build cannot join Discord, record sound, or send meeting content to an AI provider. It must present those as unavailable in this version—not as setup, checking, or a routine prerequisite.
 
 ## Research and copy principles
 
 1. Prefer a person’s task over the system component: `Room to use next`, not `Next voice room`; `Meeting helper`, not `AI provider`.
-2. Prefer a concrete state over an operational claim: `Recording is off`, not `safe hold` or `gateway ready`.
-3. Use verbs that match the real action: `Open a private review`, `Check again`, `Finish review`, `Open notes`, and `Download record`.
-4. Keep the reason for an unavailable feature short and non-technical: `Recording is off until the connection has been fully checked.`
+2. Prefer an explicit unavailable state over an operational claim: `Recording is not available in this version`, never `ready`, `available`, `checking`, or `set up`.
+3. Use verbs that match the real action: `Start a private review`, `Refresh`, `Finish review`, `Open notes`, and `Open full record`.
+4. Do not render provider configuration as a selectable product choice until a verified, user-authorized summary path exists.
 5. Never use a warm phrase to conceal a material limitation or make a non-action look active.
 
 ## Requirements and acceptance criteria
 
 - All visible buttons, selectors, status names, headings, empty states, exports, and dialog text use everyday language.
 - No user-visible string says `control plane`, `gateway`, `capture`, `Markdown`, `JSON`, `offline record`, `ready`, `safe hold`, or exposes implementation configuration.
-- The current no-action boundary remains explicit: choosing a room/helper does not join a call, record sound, or share meeting content.
-- A private review remains explicitly non-recording and cannot be mistaken for a meeting.
-- Tests lock the human labels and the no-action boundary; source/API safety tests remain intact.
+- The current no-action boundary remains explicit: choosing a room does not join a call; recording and meeting helpers are unavailable in this version; no meeting content is shared.
+- A private review remains explicitly non-recording and cannot be mistaken for a live meeting.
+- Tests lock the unavailable-state wording, accurate action labels, and the no-action boundary; source/API safety tests remain intact.
 - Desktop and narrow-mobile review confirm readability, no overflow, clear state hierarchy, and usable actions.
 
 ## Architecture / security / rollout

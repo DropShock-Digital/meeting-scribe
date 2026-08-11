@@ -31,11 +31,11 @@
     <section class="hero" aria-labelledby="state-title">
       <div class="hero-copy">
         <p class="eyebrow">PRIVATE MEETING SPACE</p>
-        <h1 id="state-title">Nothing to record,<br><em>yet.</em></h1>
-        <p id="state-subtitle" class="lede">Pick a room when you are ready. Recording stays off until this connection has been fully checked.</p>
+        <h1 id="state-title">Private reviews,<br><em>not recordings.</em></h1>
+        <p id="state-subtitle" class="lede">This version cannot join calls or record sound.</p>
         <div class="hero-actions">
-          <button id="create-review" class="primary">Open a private review <span aria-hidden="true">↗</span></button>
-          <button id="refresh" class="quiet">Check again</button>
+          <button id="create-review" class="primary">Start a private review <span aria-hidden="true">↗</span></button>
+          <button id="refresh" class="quiet">Refresh</button>
         </div>
         <p id="action-status" class="action-status" role="status"></p>
       </div>
@@ -61,18 +61,18 @@
       <div class="choice-card">
         <label for="provider-selector">Meeting helper</label>
         <select id="provider-selector" aria-describedby="provider-help"></select>
-        <p id="provider-help">Nothing is shared with a helper until a reviewed summary feature is available.</p>
+        <p id="provider-help">No meeting helper is available in this version. Meeting content stays private.</p>
       </div>
       <p id="preference-status" class="preference-status" role="status"></p>
     </section>
 
     <section class="capability" aria-labelledby="capability-title">
-      <div class="capability-copy"><p class="eyebrow">RECORDING</p><h2 id="capability-title">Recording is off.</h2><p id="capture-reason">Checking recording availability…</p></div>
-      <div class="capability-actions"><span id="capture-label" class="pause-label">CHECKING</span><button id="view-disclosure" class="outline">See participant notice</button></div>
+      <div class="capability-copy"><p class="eyebrow">RECORDING</p><h2 id="capability-title">Recording is not available.</h2><p id="capture-reason">This version cannot join calls or record sound.</p></div>
+      <div class="capability-actions"><span id="capture-label" class="pause-label">RECORDING OFF</span><button id="view-disclosure" class="outline">See participant notice</button></div>
     </section>
 
-    <section class="workbench" aria-label="Meeting activity">
-      <div class="section-heading"><div><p class="eyebrow">HAPPENING NOW</p><h2>Meetings in progress</h2></div><p id="active-count" class="count"></p></div>
+    <section class="workbench" aria-label="Meeting records">
+      <div class="section-heading"><div><p class="eyebrow">OPEN RECORDS</p><h2>Open records</h2></div><p id="active-count" class="count"></p></div>
       <div id="active-meetings" class="active-grid" aria-live="polite"></div>
     </section>
 
@@ -82,7 +82,7 @@
     </section>
   </main>
   <footer><span>MEETING SCRIBE</span><span>Private meeting records · kept here by default</span></footer>
-  <dialog id="disclosure-dialog" aria-labelledby="disclosure-title"><form method="dialog"><button class="dialog-close" aria-label="Close participant notice">×</button><p class="eyebrow">PARTICIPANT NOTICE</p><h2 id="disclosure-title">What people will see.</h2><blockquote id="disclosure-text"></blockquote><p>If recording becomes available, people see this notice first.</p></form></dialog>
+  <dialog id="disclosure-dialog" aria-labelledby="disclosure-title"><form method="dialog"><button class="dialog-close" aria-label="Close participant notice">×</button><p class="eyebrow">PARTICIPANT NOTICE</p><h2 id="disclosure-title">What people will see.</h2><blockquote id="disclosure-text"></blockquote><p>This version does not record. This notice is here for reference.</p></form></dialog>
   <script src="/app.js"></script>
 </body>
 </html>
