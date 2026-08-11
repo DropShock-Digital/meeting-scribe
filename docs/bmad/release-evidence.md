@@ -30,3 +30,15 @@ This file is updated only with commands actually run and results actually observ
 ## Release decision
 
 **Eligible for public alpha source publication as a local-core release.** The public repository and its GitHub CI passed after the initial release; the independent review findings are addressed in the follow-up change-control record. It is **not** eligible to claim live Discord audio recording support.
+
+## Room and provider control-plane change
+
+| Check | Observed result |
+|---|---|
+| Independent review | Found raw-label/endpoint leakage, false provider-readiness language, unstable room preferences, and catalog-validation gaps. All were remediated before release. |
+| Automated behavior | `pytest -q --basetemp .pytest-room-provider-release` passed: **21 tests**. |
+| Source gates | `node --check`, `uv lock --check`, `compileall`, Ruff, mypy, repository safety scan, Compose profiles, and whitespace checks passed. |
+| Container runtime | A fresh non-root Docker runtime returned a sanitized named room catalog, no configured provider by default, and the same fail-closed capture capability. |
+| Visual review | Isolated desktop and full-height 390px renders showed the named room selector, configured-but-unverified provider preference, no raw IDs/secrets, no overflow, and explicit no-join/no-capture/no-AI-request messaging. |
+
+The OpenRouter/Codex/LM Studio choices are **configuration preferences only** in this release. They are not authentication health, provider connectivity, model execution, or a transcript/summarization feature.

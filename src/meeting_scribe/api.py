@@ -67,7 +67,18 @@ def configuration(request: Request) -> dict[str, Any]:
         "discord_enabled": settings.discord_enabled,
         "allowlisted_channel_count": len(settings.channel_allowlist),
         "allowlisted_operator_count": len(settings.operator_allowlist),
-        "max_transcript_chars": settings.max_transcript_chars,
+        "rooms": [
+            {"key": room.key, "label": room.label} for room in settings.voice_rooms
+        ],
+        "ai_providers": [
+            {
+                "key": provider.key,
+                "label": provider.label,
+                "detail": provider.detail,
+                "configured": provider.configured,
+            }
+            for provider in settings.ai_providers
+        ],
     }
 
 

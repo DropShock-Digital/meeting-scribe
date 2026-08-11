@@ -6,6 +6,19 @@
   <meta name="theme-color" content="#090b11">
   <title>Meeting Scribe — Control room</title>
   <link rel="stylesheet" href="/styles.css">
+  <style>
+    .control-deck{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:1px;margin:0 0 5rem;border:1px solid var(--line);background:var(--line)}
+    .deck-intro,.choice-card{min-width:0;padding:clamp(1.4rem,3vw,2.4rem);background:rgba(15,20,32,.82)}
+    .deck-intro h2{max-width:15ch;margin:.35rem 0 .6rem;font-size:clamp(1.7rem,3vw,2.8rem);letter-spacing:-.055em;line-height:1.02}
+    .deck-intro p:last-child,.choice-card p{margin:.6rem 0 0;color:var(--muted);font-size:.88rem}
+    .choice-card{display:flex;flex-direction:column;justify-content:center}
+    .choice-card label{margin:0 0 .75rem;font-size:.78rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--cyan)}
+    .choice-card select{width:100%;min-height:3.35rem;padding:.7rem 2.4rem .7rem .9rem;border:1px solid var(--line-strong);border-radius:.2rem;background:#0b101a;color:var(--ink);font:inherit;font-weight:700;appearance:auto}
+    .choice-card select:focus-visible{outline:3px solid rgba(116,228,255,.65);outline-offset:3px}
+    .preference-status{grid-column:1/-1;margin:0;padding:1rem 1.35rem;background:rgba(9,11,17,.9);color:var(--muted);font-size:.86rem}
+    @media(max-width:900px){.control-deck{grid-template-columns:1fr 1fr}.deck-intro{grid-column:1/-1}.preference-status{grid-column:1/-1}}
+    @media(max-width:620px){.control-deck{grid-template-columns:1fr;margin-bottom:3.5rem}.deck-intro,.choice-card{padding:1.35rem}.deck-intro{grid-column:auto}.preference-status{grid-column:auto}}
+  </style>
 </head>
 <body>
   <a class="skip" href="#control-room">Skip to control room</a>
@@ -32,6 +45,25 @@
         <p id="system-summary">Reading the local control plane.</p>
         <dl class="signal-list" id="signals" aria-label="System signals"></dl>
       </aside>
+    </section>
+
+    <section class="control-deck" aria-labelledby="control-deck-title">
+      <div class="deck-intro">
+        <p class="eyebrow">SESSION SETUP</p>
+        <h2 id="control-deck-title">Choose the room. Choose the mind.</h2>
+        <p>Your preferences stay in this browser. They do not join Discord, start capture, or send meeting content.</p>
+      </div>
+      <div class="choice-card">
+        <label for="room-selector">Next voice room</label>
+        <select id="room-selector" aria-describedby="room-help"></select>
+        <p id="room-help">Only approved rooms appear here. The gateway must still be verified before it can join one.</p>
+      </div>
+      <div class="choice-card">
+        <label for="provider-selector">AI provider</label>
+        <select id="provider-selector" aria-describedby="provider-help"></select>
+        <p id="provider-help">No meeting content is sent until a verified summary workflow is enabled.</p>
+      </div>
+      <p id="preference-status" class="preference-status" role="status"></p>
     </section>
 
     <section class="capability" aria-labelledby="capability-title">

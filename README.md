@@ -89,7 +89,7 @@ Meeting Scribe records operator evidence. It cannot determine whether recording 
 
 ## Architecture
 
-The core service owns policy, lifecycle state, SQLite persistence, and exports. Discord, audio receive, speech-to-text, AI enrichment, and workflow integrations are adapters—not dependencies of the core.
+The core service owns policy, lifecycle state, SQLite persistence, and exports. Discord, audio receive, speech-to-text, AI enrichment, and workflow integrations are adapters—not dependencies of the core. The control room can keep a local room/provider preference, but does not call an AI provider or join Discord until those adapters pass their own verification gates.
 
 ```mermaid
 flowchart TB
@@ -117,6 +117,11 @@ Copy `.env.example`. The core demo works without any token.
 | `MEETING_SCRIBE_CHANNEL_ALLOWLIST` | Comma-separated channel IDs/names permitted to create meetings |
 | `MEETING_SCRIBE_OPERATOR_ALLOWLIST` | Comma-separated operator identities permitted to start/stop meetings |
 | `MEETING_SCRIBE_MAX_TRANSCRIPT_CHARS` | Per-event request limit |
+| `MEETING_SCRIBE_ROOM_CATALOG` | JSON catalog of `{key, channel_id, label}` entries; stable opaque keys and IDs remain server-side and rooms must be allowlisted |
+| `MEETING_SCRIBE_CODEX_OAUTH_CONFIGURED` | Marks a separately provisioned, dedicated Codex OAuth connection configured; Meeting Scribe never reads Hermes auth state |
+| `MEETING_SCRIBE_OPENROUTER_API_KEY_FILE` | Protected runtime key-file path; the browser receives only configuration status, never the path or key |
+| `MEETING_SCRIBE_LMSTUDIO_CONFIGURED` | Marks an approved local LM Studio connection configured without exposing its endpoint |
+| `MEETING_SCRIBE_COMPATIBLE_PROVIDER_*` | Label/configuration status for one approved OpenAI-compatible provider |
 | `MEETING_SCRIBE_DISCORD_ENABLED` | Enables the optional Discord adapter only when `true` |
 | `MEETING_SCRIBE_DISCORD_TOKEN` | Protected runtime secret; never commit it |
 | `MEETING_SCRIBE_DISCORD_GUILD_ID` | The one guild the optional adapter is configured for |

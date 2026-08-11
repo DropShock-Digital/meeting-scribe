@@ -95,10 +95,22 @@ class MeetingService:
         return {
             "system": {
                 "discord_enabled": self.settings.discord_enabled,
-                "configured_room_count": len(self.settings.channel_allowlist),
+                "configured_room_count": len(self.settings.voice_rooms),
                 "configured_operator_count": len(self.settings.operator_allowlist),
                 "disclosure_mode": "automatic-after-verified-gateway-delivery",
             },
+            "rooms": [
+                {"key": room.key, "label": room.label} for room in self.settings.voice_rooms
+            ],
+            "providers": [
+                {
+                    "key": provider.key,
+                    "label": provider.label,
+                    "detail": provider.detail,
+                    "configured": provider.configured,
+                }
+                for provider in self.settings.ai_providers
+            ],
             "capture": {
                 "available": capture.available,
                 "label": "Ready" if capture.available else "Safely paused",

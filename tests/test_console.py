@@ -11,6 +11,10 @@ def test_console_is_operator_native_and_avoids_configuration_form_fields(client:
     assert "Operator ID" not in response.text
     assert "operator_confirmed_disclosure" not in response.text
     assert "Skip to control room" in response.text
+    assert "Next voice room" in response.text
+    assert "AI provider" in response.text
+    assert 'type="password"' not in response.text
+    assert "API key" not in response.text
 
 
 def test_console_script_uses_sanitized_console_read_model(client: TestClient) -> None:
@@ -19,3 +23,5 @@ def test_console_script_uses_sanitized_console_read_model(client: TestClient) ->
     assert "/api/meetings/offline-review" in script
     assert "channel_id" not in script
     assert "operator_id" not in script
+    assert "localStorage" in script
+    assert "No Discord join, audio capture, or AI request occurs" in script

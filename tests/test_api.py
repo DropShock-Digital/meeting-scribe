@@ -19,7 +19,11 @@ def create(client: TestClient) -> str:
 def test_health_never_exposes_configuration_secrets(client: TestClient) -> None:
     assert client.get("/api/health").json() == {"status": "ok"}
     body = client.get("/api/configuration").json()
+    serialized = client.get("/api/configuration").text
     assert "discord_token" not in body
+    assert "demo-room" not in serialized
+    assert "local-demo" not in serialized
+    assert body["rooms"] == [{"key": "review-room", "label": "Demo room"}]
 
 
 def test_creation_requires_explicit_confirmation_and_allowlists(client: TestClient) -> None:

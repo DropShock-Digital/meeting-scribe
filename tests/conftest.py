@@ -10,7 +10,10 @@ from fastapi.testclient import TestClient
 def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> TestClient:
     monkeypatch.setenv("MEETING_SCRIBE_DATA_DIR", str(tmp_path / "data"))
     monkeypatch.setenv("MEETING_SCRIBE_CHANNEL_ALLOWLIST", "demo-room")
-    monkeypatch.setenv("MEETING_SCRIBE_OPERATOR_ALLOWLIST", "local-demo")
+    monkeypatch.setenv(
+        "MEETING_SCRIBE_ROOM_CATALOG",
+        '[{"key":"review-room","channel_id":"demo-room","label":"Demo room"}]',
+    )
     from meeting_scribe.main import create_app
 
     with TestClient(create_app()) as test_client:

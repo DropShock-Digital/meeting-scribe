@@ -11,6 +11,12 @@ const archive = document.querySelector('#archive');
 const actionStatus = document.querySelector('#action-status');
 const disclosureDialog = document.querySelector('#disclosure-dialog');
 const disclosureText = document.querySelector('#disclosure-text');
+const roomSelector = document.querySelector('#room-selector');
+const providerSelector = document.querySelector('#provider-selector');
+const preferenceStatus = document.querySelector('#preference-status');
+
+const ROOM_PREFERENCE = 'meeting-scribe.room-preference';
+const PROVIDER_PREFERENCE = 'meeting-scribe.provider-preference';
 
 const esc = value => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
 const time = value => new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
@@ -18,6 +24,56 @@ const recordLinks = meeting => `<div class="record-links"><a href="/api/meetings
 
 function signal(label, value, tone = 'neutral') {
   return `<div class="signal"><dt><span class="signal-dot ${tone}" aria-hidden="true"></span>${esc(label)}</dt><dd>${esc(value)}</dd></div>`;
+}
+
+function stored(key) {
+  try { return localStorage.getItem(key); } catch { return null; }
+}
+
+function remember(key, value) {
+  try { localStorage.setItem(key, value); } catch { /* Browser preference is optional. */ }
+}
+
+function option(value, label, disabled = false) {
+  const node = document.createElement('option');
+  node.value = value;
+  node.textContent = label;
+  node.disabled = disabled;
+  return node;
+}
+
+function renderPreferences(rooms, providers) {
+  roomSelector.replaceChildren();
+  if (!rooms.length) roomSelector.append(option('', 'No named room catalog configured'));
+  for (const room of rooms) roomSelector.append(option(room.key, room.label));
+  roomSelector.disabled = rooms.length === 0;
+  const savedRoom = stored(ROOM_PREFERENCE);
+  const selectedRoom = rooms.find(room => room.key === savedRoom) || rooms[0];
+  if (selectedRoom) roomSelector.value = selectedRoom.key;
+
+  providerSelector.replaceChildren();
+  const configuredProviders = providers.filter(provider => provider.configured);
+  if (!configuredProviders.length) {
+    providerSelector.append(option('', 'No provider configured yet'));
+  }
+  for (const provider of providers) {
+    providerSelector.append(option(
+      provider.key,
+      `${provider.label} · ${provider.configured ? 'configured' : 'not configured'}`,
+      !provider.configured,
+    ));
+  }
+  providerSelector.disabled = configuredProviders.length === 0;
+  const savedProvider = stored(PROVIDER_PREFERENCE);
+  const selectedProvider = configuredProviders.find(provider => provider.key === savedProvider)
+    || configuredProviders[0];
+  if (selectedProvider) providerSelector.value = selectedProvider.key;
+
+  const roomCopy = selectedRoom ? `Next room: ${selectedRoom.label}.` : 'No approved voice rooms are configured.';
+  const providerCopy = selectedProvider
+    ? `AI preference: ${selectedProvider.label} configured. ${selectedProvider.detail}`
+    : 'AI preference: none configured. Configure a protected provider connection outside this browser.';
+  preferenceStatus.textContent = `${roomCopy} ${providerCopy} No Discord join, audio capture, or AI request occurs from this screen.`;
 }
 
 function meetingCard(meeting) {
@@ -39,7 +95,7 @@ function archiveRow(meeting) {
 }
 
 function render(snapshot) {
-  const { system, capture, disclosure, active, archive: archived } = snapshot;
+  const { system, rooms = [], providers = [], capture, disclosure, active, archive: archived } = snapshot;
   const liveActive = active.some(meeting => meeting.mode !== 'offline-review');
   const offlineReviewOpen = active.some(meeting => meeting.mode === 'offline-review');
   const capturePaused = !capture.available;
@@ -75,6 +131,7 @@ function render(snapshot) {
   captureLabel.className = `pause-label ${capturePaused ? 'hold' : 'ready'}`;
   captureReason.textContent = capture.reason;
   disclosureText.textContent = disclosure;
+  renderPreferences(rooms, providers);
   activeCount.textContent = active.length ? `${active.length} open` : 'NO OPEN SESSIONS';
   activeMeetings.innerHTML = active.length ? active.map(meetingCard).join('') : emptyActive();
   archive.innerHTML = archived.length ? archived.map(archiveRow).join('') : '<p class="archive-empty">Closed meetings and their exports will appear here.</p>';
@@ -108,6 +165,14 @@ document.querySelector('#create-review').addEventListener('click', async () => {
 
 document.querySelector('#refresh').addEventListener('click', () => void load());
 document.querySelector('#view-disclosure').addEventListener('click', () => disclosureDialog.showModal());
+roomSelector.addEventListener('change', () => {
+  remember(ROOM_PREFERENCE, roomSelector.value);
+  preferenceStatus.textContent = `Next room preference saved: ${roomSelector.selectedOptions[0]?.textContent || 'approved room'}. No Discord join occurs yet.`;
+});
+providerSelector.addEventListener('change', () => {
+  remember(PROVIDER_PREFERENCE, providerSelector.value);
+  preferenceStatus.textContent = `AI preference saved: ${providerSelector.selectedOptions[0]?.textContent || 'configured provider'}. This remains unverified; no meeting content is sent yet.`;
+});
 activeMeetings.addEventListener('click', async event => {
   const button = event.target.closest('[data-finalize]');
   if (!button) return;
