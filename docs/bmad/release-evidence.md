@@ -42,3 +42,8 @@ This file is updated only with commands actually run and results actually observ
 | Visual review | Isolated desktop and full-height 390px renders showed the named room selector, configured-but-unverified provider preference, no raw IDs/secrets, no overflow, and explicit no-join/no-capture/no-AI-request messaging. |
 
 The OpenRouter/Codex/LM Studio choices are **configuration preferences only** in this release. They are not authentication health, provider connectivity, model execution, or a transcript/summarization feature.
+
+### Final publication and deployment proof
+
+- **Remote CI:** GitHub Actions run `31489221289` passed after adding the optional private catalog overlay.
+- **Private review deployment:** The existing Tailnet-only container was rebuilt, restored to its Tailnet bind, and returned the two named approved rooms through a sanitized console payload. Capture and all AI providers remain unavailable/unconfigured.
