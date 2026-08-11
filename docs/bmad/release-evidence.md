@@ -8,15 +8,17 @@ This file is updated only with commands actually run and results actually observ
 |---|---|
 | Dependency resolution | `uv lock` and `uv sync --extra dev --extra discord` completed. |
 | Syntax | `python -m compileall -q src tests scripts` completed. |
-| Automated behavior | `pytest -q --basetemp .pytest-review` passed: **9 tests**, including atomic concurrent lifecycle and Discord CLI wiring. |
+| Automated behavior | `pytest -q --basetemp .pytest-control-room-commit` passed: **12 tests**, including atomic lifecycle protection, Discord CLI wiring, sanitized control-room state, and non-capturing offline-review records. |
 | Lint | `ruff check .` passed. |
 | Type check | `mypy src` passed for 10 source files. |
 | Public-source guard | `python scripts/repo_safety_check.py` passed. |
 | Compose validation | `docker compose config` and `docker compose --profile discord config` passed. |
 | Python packaging | `uv build` produced both an sdist and wheel. |
-| Docker build and runtime | Dockerfile built successfully; a fresh container's internal `/api/health` returned `{"status":"ok"}`. The build used temporary host networking only because this environment's Docker bridge DNS could not resolve package hosts. |
-| Local HTTP user path | A clean local instance returned healthy; create → disclosure → acknowledgement → transcript → finalize → Markdown/JSON export completed. |
-| Visual review | The architecture diagram and running local operator console were rendered and reviewed. An initial diagram title overflow was corrected and re-rendered. |
+| Docker build and runtime | The control-room image built successfully. A fresh non-root container reached healthy state, returned `/api/health`, and returned a sanitized `/api/console` payload. The build used temporary host networking only because this environment's Docker bridge DNS could not resolve package hosts. |
+| Control-room user path | A clean instance created an offline review record, kept it out of `recording`, exposed Markdown/JSON exports, and finalized it successfully. |
+| Visual review | Desktop and 390px mobile renders were reviewed in no-gateway, no-capture, and offline-review states. A misleading offline-review headline was found and corrected before release. |
+| Private deployment | The Dockerized control room was rebuilt and verified through its Tailscale-bound address. Docker reports a single binding to the host's Tailscale IPv4 address; no public tunnel or Funnel was configured. |
+| Remote CI | GitHub Actions run `31484082709` passed for the control-room release. |
 
 ## Deliberately not claimed
 
