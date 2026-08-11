@@ -30,6 +30,7 @@ def test_console_script_uses_sanitized_human_read_model(client: TestClient) -> N
     assert "operator_id" not in script
     assert "localStorage" in script
     assert "Saved only in this browser. Nothing has started." in script
+    assert "No helper set up" in script
     assert "does not join a call or record sound" in script
     assert "encrypted Discord receive path" not in script
     assert "Open Markdown" not in script

@@ -53,7 +53,7 @@ function renderPreferences(rooms, providers) {
 
   providerSelector.replaceChildren();
   const configuredProviders = providers.filter(provider => provider.configured);
-  if (!configuredProviders.length) providerSelector.append(option('', 'No meeting helper is set up yet'));
+  if (!configuredProviders.length) providerSelector.append(option('', 'No helper set up'));
   for (const provider of providers) {
     providerSelector.append(option(
       provider.key,
