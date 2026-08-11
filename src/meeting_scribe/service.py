@@ -67,7 +67,7 @@ class MeetingService:
         created_at = now()
         stamp = created_at.split(".", 1)[0].replace("T", " ") + " UTC"
         meeting = Meeting.new(
-            f"Offline review · {stamp}",
+            f"Private review · {stamp}",
             sorted(self.settings.channel_allowlist)[0],
             sorted(self.settings.operator_allowlist)[0],
             DEFAULT_DISCLOSURE,

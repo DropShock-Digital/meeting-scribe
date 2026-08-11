@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#090b11">
-  <title>Meeting Scribe — Control room</title>
+  <title>Meeting Scribe — Private meeting space</title>
   <link rel="stylesheet" href="/styles.css">
   <style>
     .control-deck{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:1px;margin:0 0 5rem;border:1px solid var(--line);background:var(--line)}
@@ -21,68 +21,68 @@
   </style>
 </head>
 <body>
-  <a class="skip" href="#control-room">Skip to control room</a>
+  <a class="skip" href="#control-room">Skip to meeting space</a>
   <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
   <header class="topbar">
-    <a class="brand" href="/" aria-label="Meeting Scribe control room"><span class="brand-mark" aria-hidden="true"></span><span>MEETING SCRIBE</span></a>
-    <div class="topbar-status"><span class="pulse" aria-hidden="true"></span><span id="top-status">CONTROL ROOM</span></div>
+    <a class="brand" href="/" aria-label="Meeting Scribe private meeting space"><span class="brand-mark" aria-hidden="true"></span><span>MEETING SCRIBE</span></a>
+    <div class="topbar-status"><span class="pulse" aria-hidden="true"></span><span id="top-status">PRIVATE SPACE</span></div>
   </header>
   <main id="control-room">
     <section class="hero" aria-labelledby="state-title">
       <div class="hero-copy">
-        <p class="eyebrow">PRIVATE MEETING CONTROL ROOM</p>
-        <h1 id="state-title">Control room,<br><em>standing by.</em></h1>
-        <p id="state-subtitle" class="lede">Connect the verified Discord gateway to enable automatic meeting flow. Voice capture remains safely paused until its encrypted receive path has passed verification.</p>
+        <p class="eyebrow">PRIVATE MEETING SPACE</p>
+        <h1 id="state-title">Nothing to record,<br><em>yet.</em></h1>
+        <p id="state-subtitle" class="lede">Pick a room when you are ready. Recording stays off until this connection has been fully checked.</p>
         <div class="hero-actions">
-          <button id="create-review" class="primary">Create offline review record <span aria-hidden="true">↗</span></button>
-          <button id="refresh" class="quiet">Refresh state</button>
+          <button id="create-review" class="primary">Open a private review <span aria-hidden="true">↗</span></button>
+          <button id="refresh" class="quiet">Check again</button>
         </div>
         <p id="action-status" class="action-status" role="status"></p>
       </div>
       <aside class="state-panel" aria-labelledby="system-title">
-        <div class="panel-top"><p class="eyebrow">SYSTEM STATE</p><span id="system-badge" class="status-badge">CHECKING</span></div>
-        <h2 id="system-title">Nothing to chase.</h2>
-        <p id="system-summary">Reading the local control plane.</p>
+        <div class="panel-top"><p class="eyebrow">WHAT IS HAPPENING</p><span id="system-badge" class="status-badge">CHECKING</span></div>
+        <h2 id="system-title">At a glance.</h2>
+        <p id="system-summary">Nothing is recording.</p>
         <dl class="signal-list" id="signals" aria-label="System signals"></dl>
       </aside>
     </section>
 
     <section class="control-deck" aria-labelledby="control-deck-title">
       <div class="deck-intro">
-        <p class="eyebrow">SESSION SETUP</p>
-        <h2 id="control-deck-title">Choose the room. Choose the mind.</h2>
-        <p>Your preferences stay in this browser. They do not join Discord, start capture, or send meeting content.</p>
+        <p class="eyebrow">GET READY</p>
+        <h2 id="control-deck-title">Set up your next meeting.</h2>
+        <p>These choices stay on this device. They do not start anything.</p>
       </div>
       <div class="choice-card">
-        <label for="room-selector">Next voice room</label>
+        <label for="room-selector">Room to use next</label>
         <select id="room-selector" aria-describedby="room-help"></select>
-        <p id="room-help">Only approved rooms appear here. The gateway must still be verified before it can join one.</p>
+        <p id="room-help">Only rooms you approve appear here. Choosing one does not join a call.</p>
       </div>
       <div class="choice-card">
-        <label for="provider-selector">AI provider</label>
+        <label for="provider-selector">Meeting helper</label>
         <select id="provider-selector" aria-describedby="provider-help"></select>
-        <p id="provider-help">No meeting content is sent until a verified summary workflow is enabled.</p>
+        <p id="provider-help">Nothing is shared with a helper until a reviewed summary feature is available.</p>
       </div>
       <p id="preference-status" class="preference-status" role="status"></p>
     </section>
 
     <section class="capability" aria-labelledby="capability-title">
-      <div class="capability-copy"><p class="eyebrow">CAPTURE BOUNDARY</p><h2 id="capability-title">Truth before activity.</h2><p id="capture-reason">Loading capture capability…</p></div>
-      <div class="capability-actions"><span id="capture-label" class="pause-label">CHECKING</span><button id="view-disclosure" class="outline">View automatic disclosure</button></div>
+      <div class="capability-copy"><p class="eyebrow">RECORDING</p><h2 id="capability-title">Recording is off.</h2><p id="capture-reason">Checking recording availability…</p></div>
+      <div class="capability-actions"><span id="capture-label" class="pause-label">CHECKING</span><button id="view-disclosure" class="outline">See participant notice</button></div>
     </section>
 
     <section class="workbench" aria-label="Meeting activity">
-      <div class="section-heading"><div><p class="eyebrow">RIGHT NOW</p><h2>Active sessions</h2></div><p id="active-count" class="count"></p></div>
+      <div class="section-heading"><div><p class="eyebrow">HAPPENING NOW</p><h2>Meetings in progress</h2></div><p id="active-count" class="count"></p></div>
       <div id="active-meetings" class="active-grid" aria-live="polite"></div>
     </section>
 
     <section class="library" aria-labelledby="library-title">
-      <div class="section-heading"><div><p class="eyebrow">LOCAL RECORDS</p><h2 id="library-title">Meeting library</h2></div><p class="library-note">Exports stay on this machine.</p></div>
+      <div class="section-heading"><div><p class="eyebrow">SAVED HERE</p><h2 id="library-title">Past meetings</h2></div><p class="library-note">Kept on this device.</p></div>
       <div id="archive" class="archive-list" aria-live="polite"></div>
     </section>
   </main>
-  <footer><span>MEETING SCRIBE</span><span>Local-first meeting records · no cloud by default</span></footer>
-  <dialog id="disclosure-dialog" aria-labelledby="disclosure-title"><form method="dialog"><button class="dialog-close" aria-label="Close disclosure">×</button><p class="eyebrow">AUTOMATIC NOTICE</p><h2 id="disclosure-title">Generated before capture.</h2><blockquote id="disclosure-text"></blockquote><p>When a verified Discord gateway starts a configured meeting, it sends this notice and records delivery before any capture may begin.</p></form></dialog>
+  <footer><span>MEETING SCRIBE</span><span>Private meeting records · kept here by default</span></footer>
+  <dialog id="disclosure-dialog" aria-labelledby="disclosure-title"><form method="dialog"><button class="dialog-close" aria-label="Close participant notice">×</button><p class="eyebrow">PARTICIPANT NOTICE</p><h2 id="disclosure-title">What people will see.</h2><blockquote id="disclosure-text"></blockquote><p>If recording becomes available, people see this notice first.</p></form></dialog>
   <script src="/app.js"></script>
 </body>
 </html>

@@ -25,7 +25,7 @@ def test_offline_review_uses_configured_identity_without_claiming_capture(client
     response = client.post("/api/meetings/offline-review")
     assert response.status_code == 201
     meeting = response.json()["meeting"]
-    assert meeting["title"].startswith("Offline review ·")
+    assert meeting["title"].startswith("Private review ·")
     assert meeting["status"] == "disclosing"
     assert meeting["mode"] == "offline-review"
     assert "channel_id" not in meeting
